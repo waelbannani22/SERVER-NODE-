@@ -54,13 +54,6 @@ app.post("/createVolunteer",async(req,res)=>{
 
     })
 })
-//http://172.16.245.129:8081/createVolunteer
 
-//update volunteer
-
-// fetch volunteer 
-
-
-//delete volunteer 
 
 
