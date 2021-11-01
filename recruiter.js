@@ -15,5 +15,5 @@ var recruiter = new mongoose.Schema({
 
 })
 
-const Recruiter =mongoose.model("Data",recruiter)
+const Recruiter =mongoose.model("recruiter",recruiter)
 module.exports = Recruiter

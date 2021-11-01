@@ -15,5 +15,5 @@ var call = new mongoose.Schema({
 
 })
 
-const Call =mongoose.model("Data",call)
+const Call =mongoose.model("call",call)
 module.exports = Call

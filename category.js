@@ -9,5 +9,5 @@ var category = new mongoose.Schema({
 
 })
 
-const Category =mongoose.model("Data",category)
+const Category =mongoose.model("category",category)
 module.exports = Category
