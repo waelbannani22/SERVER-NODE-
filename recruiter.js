@@ -3,17 +3,16 @@ var schema =mongoose.Schema
 
 var recruiter = new mongoose.Schema({
         name : String,
-        
         email :String,
         password : String,
         photo :String,
-        
-      
-        description :String
+        description :String,
+        organisation:String,
+        phone :String
 
 
 
 })
 
-const Recruiter =mongoose.model("Data",recruiter)
+const Recruiter =mongoose.model("Recruiter",recruiter)
 module.exports = Recruiter

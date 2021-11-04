@@ -15,5 +15,5 @@ var volunteer = new mongoose.Schema({
 
 })
 
-const Data =mongoose.model("Data",volunteer)
-module.exports = Data
+const Volunteer =mongoose.model("Volunteer",volunteer)
+module.exports = Volunteer
