@@ -40,3 +40,20 @@ this project is made with [http://www.nodejs.org] and [https://wwww.mongodb.com]
 ## Reference
 
 - [About Node.js](https://nodejs.org/en/about/)
+
+
+## Documentation mongoDB
+
+  https://docs.mongodb.com/manual/
+  
+  ## Learn MongoDB
+
+  https://university.mongodb.com/
+
+## LICENSE
+
+  MongoDB is free and the source is available. Versions released prior to
+  October 16, 2018 are published under the AGPL. All versions released after
+  October 16, 2018, including patch fixes for prior versions, are published
+  under the [Server Side Public License (SSPL) v1](LICENSE-Community.txt).
+  See individual files for details.
