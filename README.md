@@ -14,6 +14,29 @@ this project is made with [http://www.nodejs.org] and [https://wwww.mongodb.com]
 
 ## for better understanding every function is commented
 
-## Reference:
+## Terms
 
-https://nodejs.org/en/about/
+- Node.js platform
+- npm (Node package manager)
+- package.json
+- host
+- port
+- URI
+- URL
+- web server
+- web service
+- web client
+- web request
+- web response
+
+
+## Benefits
+
+- Folder-based
+- Easy to write
+- More practice with JavaScript
+- Node.js non-blocking event loop supports many concurrent requests
+
+## Reference
+
+- [About Node.js](https://nodejs.org/en/about/)
