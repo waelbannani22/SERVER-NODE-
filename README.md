@@ -12,4 +12,6 @@ this project is made with [http://www.nodejs.org] and [https://wwww.mongodb.com]
 ## to run the server :
 `node server.js`
 
+## for better understanding every function is commented
+
 
