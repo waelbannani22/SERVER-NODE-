@@ -277,5 +277,60 @@ app.post("/update_review",(req,res)=>{
   res.send(" review updated")
 })
 
+//¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤Notifcation¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+
+//create notification
+app.post("/create_notification",(req,res)=>{
+  var notification = new Notification({
+      date:req.get("date"),
+      nameExperience:req.get("nameExperience"),
+      volunteerId:req.get("volunteerId"),
+      type:req.get("type"),
+      
+
+  })
+
+  notification.save().then(()=>{
+    if (notification.isNew == false){
+      console.log("saved data")
+      res.send("saved data")
+    }else{
+      console.log("failed to save notification")
+    }
+  })
+})
+
+//fetch noti
+app.get("/Notifications",(req,res)=>{
+  Notification.find({}).then((DBitems)=>{
+    res.send(DBitems)
+  })
+})
+//remove noti
+app.post("/delete_notification",(req,res)=>{
+  Notification.findOneAndRemove({
+    _id: req.get("id")
+  },(err)=>{
+    console.log("deleted notification")
+  }
+  )
+  res.send("deleted!")
+})
+//update notififcation
+app.post("/update_notification",(req,res)=>{
+  Notification.findOneAndUpdate({
+      id:req.get("id")
+  },{
+    date:req.get("date"),
+    nameExperience:req.get("nameExperience"),
+    volunteerId:req.get("volunteerId"),
+    type:req.get("type"),
+
+  },(err)=>{
+      console.log("failed to update notification "+err)
+  })
+  res.send(" notification updated")
+})
+
 //export
   module.exports = app;
