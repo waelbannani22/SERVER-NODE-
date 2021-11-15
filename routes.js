@@ -4,6 +4,8 @@ const userModel = require("./volunteer");
 const Recruiter=require("./recruiter")
 const Call =require("./call");
 const Review = require("./review");
+const Ranking =require("./ranking")
+const Notification = require("./notification")
 const app = express();
 
 
@@ -330,6 +332,64 @@ app.post("/update_notification",(req,res)=>{
       console.log("failed to update notification "+err)
   })
   res.send(" notification updated")
+})
+
+//¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤RANKING¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+
+//create ranking
+app.post("/create_ranking",(req,res)=>{
+  var ranking = new  Ranking({
+      volunteerName:req.get("volunteerName"),
+      amount:req.get("amount"),
+      charityName:req.get("charityName"),
+      
+      
+
+  })
+
+  ranking.save().then(()=>{
+    if (ranking.isNew == false){
+      console.log("saved data")
+      res.send("saved data")
+    }else{
+      console.log("failed to save ranking")
+    }
+  })
+})
+
+//fetch ranking
+app.get("/Rankings",(req,res)=>{
+  Ranking.find({}).then((DBitems)=>{
+    res.send(DBitems)
+  })
+})
+//remove ranking
+app.post("/delete_ranking",(req,res)=>{
+  Ranking.findOneAndRemove({
+    _id: req.get("id")
+  },(err)=>{
+    console.log("deleted ranking")
+  }
+  )
+  res.send("deleted!")
+})
+//update ranking
+app.post("/update_notification",(req,res)=>{
+  Ranking.findOneAndUpdate({
+      id:req.get("id")
+  },{
+    volunteerName:req.get("volunteerName"),
+    amount:req.get("amount"),
+    charityName:req.get("charityName"),
+
+  },(err)=>{
+      console.log("failed to update ranking "+err)
+  })
+  res.send(" ranking updated")
+})
+//tri par amount
+app.get("/Randking_findbyamount",(req,res)=>{
+  
 })
 
 //export
