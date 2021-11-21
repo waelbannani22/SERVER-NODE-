@@ -1,12 +1,19 @@
-const express = require("express");
-const Volunteer = require("./volunteer");
-const userModel = require("./volunteer");
-const Recruiter=require("./recruiter")
-const Call =require("./call");
-const Review = require("./review");
-const Ranking =require("./ranking")
-const Notification = require("./notification")
+const express = require('express');
+const Volunteer = require("../entities/volunteer");
+const userModel = require("../entities/volunteer");
+const Recruiter=require("../entities/recruiter")
+const Call =require("../entities/call");
+const Review = require("../entities/review");
+const Ranking =require("../entities/ranking");
+const Notificationn = require("../entities/notification");
 const app = express();
+const jwt = require('jsonwebtoken')
+
+app.use(express.json()) 
+var bcrypt = require('bcrypt')
+var Crypto = require('crypto-js');
+const { cryptPassword } = require('./cryptage');
+var salt =10
 
 
 
@@ -35,14 +42,14 @@ app.get("/users", async (request, response) => {
   //create volunteer
   app.post("/create_volunteer",(req,res)=>{
     var volunteer = new Volunteer({
-        name:req.get("name"),
-        lastname:req.get("lastname"),
-        email:req.get("email"),
-        password:req.get("password"),
-        photo:req.get("photo"),
-        memberDate:req.get("memberDate"),
-        age:req.get("age"),
-        description:req.get("description")
+        username:req.body.username,
+        lastname:req.body.lastname,
+        email:req.body.email,
+        password:req.body.password,
+        photo:req.body.photo,
+        memberDate:req.body.memberDate,
+        age:req.body.age,
+        description:req.body.description
 
     })
 
@@ -81,7 +88,7 @@ app.get("/users", async (request, response) => {
     Volunteer.findOneAndUpdate({
         _id:req.get("id")
     },{
-      name:req.get("name"),
+      username:req.get("username"),
       lastname:req.get("lastname"),
       email:req.get("email"),
       password:req.get("password"),
@@ -283,7 +290,7 @@ app.post("/update_review",(req,res)=>{
 
 //create notification
 app.post("/create_notification",(req,res)=>{
-  var notification = new Notification({
+  var notification = new Notificationn({
       date:req.get("date"),
       nameExperience:req.get("nameExperience"),
       volunteerId:req.get("volunteerId"),
@@ -304,13 +311,13 @@ app.post("/create_notification",(req,res)=>{
 
 //fetch noti
 app.get("/Notifications",(req,res)=>{
-  Notification.find({}).then((DBitems)=>{
+  Notificationn.find({}).then((DBitems)=>{
     res.send(DBitems)
   })
 })
 //remove noti
 app.post("/delete_notification",(req,res)=>{
-  Notification.findOneAndRemove({
+  Notificationn.findOneAndRemove({
     _id: req.get("id")
   },(err)=>{
     console.log("deleted notification")
@@ -320,7 +327,7 @@ app.post("/delete_notification",(req,res)=>{
 })
 //update notififcation
 app.post("/update_notification",(req,res)=>{
-  Notification.findOneAndUpdate({
+  Notificationn.findOneAndUpdate({
       id:req.get("id")
   },{
     date:req.get("date"),
@@ -388,9 +395,109 @@ app.post("/update_notification",(req,res)=>{
   res.send(" ranking updated")
 })
 //tri par amount
-app.get("/Randking_findbyamount",(req,res)=>{
+
+//*****************************************LOGIN */
+const users = [
+  {username: 'wael', password: 'test123'}
+]
+app.post('/login', (req, res) => {
+  console.log("heloo")
+  const email = req.body.email 
+  //console.log(username)
+  const password = req.body.password
+   Volunteer.find({}).then((DBitemss)=>{
+      
+     
+  const authUser = DBitemss.find(user => user.email == email  )
+  console.log("userr"+authUser)
+  bcrypt.compare(password,authUser.password,function(err,result){
+    if (result == true){
+      if(authUser) {
+        // generate a token 
+        const token = jwt.sign({email: email}, "SECRET")
+        if(token) {
+          res.json({token: token})
+        } else {
+          res.json({message: "Authentication Failed", success: false})
+        }
+      } else {
+         res.json({message: "Authentication Failed", success: false})
+      }
+    }
+  
+     })
+  })
+ 
+  //console.log(users)
+  //const authUser = (users.find(user => user.username.toLowerCase()  == username.toLowerCase()  && user.password == password))
+ 
   
 })
+//***********************Signup */
+app.post('/Signup',(req,res)=>{
+  const username = req.body.username
+  const lastname = req.body.lastname
+  const email = req.body.email
+  var passwordE = req.body.password
+  const photo = req.body.photo
+  const memberDate = req.body.memberDate
+  const age = req.body.age
+  const description = req.body.description
 
-//export
-  module.exports = app;
+  Volunteer.find({}).then((DBitem)=>{
+   //console.log(DBitem)
+      // const validator = DBitem.find(user => user.email != email)
+      const db = DBitem.find(user => user.email == email)
+      console.log(db)
+      //var crypted = Crypto.MD5(password)
+      //console.log(crypted)
+      var pass = ""
+      bcrypt.genSalt(salt,function(err,salt){
+        bcrypt.hash(passwordE,salt,function(err,hash){
+          
+          console.log("hash"+hash)
+          if  (!db){   
+       
+       
+
+            console.log("mail defini "+ email)
+            //console.log("base "+DBitem.find(user => user.email != null).email)
+    
+            var volunteer = new Volunteer({
+              username:req.body.username,
+              lastname:req.body.lastname,
+              email:req.body.email,
+              password:hash,
+              photo:req.body.photo,
+              memberDate:req.body.memberDate,
+              age:req.body.age,
+              description:req.body.description
+    
+      
+          })
+          console.log(volunteer)
+          volunteer.save().then(()=>{
+            if (volunteer.isNew == false){
+              console.log("saved data")
+              res.send("saved data")
+            }else{
+              console.log("failed to save data")
+            }
+          })
+    
+            
+          }else {
+            console.log("mail defini "+ email)
+            console.log("mail already exists")
+            res.send("mail already in use")
+      
+          }
+        })
+      })
+      //console.log(passwordE)
+
+
+  })
+
+})
+ module.exports = app;

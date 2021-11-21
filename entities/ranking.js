@@ -7,3 +7,5 @@ var ranking = new mongoose.Schema({
     charityName : String,
     
 })
+const Ranking =mongoose.model("Ranking",ranking)
+module.exports = Ranking

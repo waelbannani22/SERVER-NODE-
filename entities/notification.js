@@ -8,3 +8,5 @@ var notification = new mongoose.Schema({
     volunteerId :String,
     type : String
 })
+const Notification =mongoose.model("Notification",notification)
+module.exports = Notification

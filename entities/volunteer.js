@@ -1,8 +1,8 @@
-var mongoose=require('mongoose')
+var mongoose= require('mongoose')
 var schema =mongoose.Schema
 
 var volunteer = new mongoose.Schema({
-        name : String,
+        username : String,
         lastname :String,
         email :String,
         password : String,

@@ -5,7 +5,8 @@ const mongoose =require('mongoose')
 
 
 var app = express()
-var Router =require('./routes')
+var Router =require('./routes/routes')
+app.use(express.json()) 
 
 
 
