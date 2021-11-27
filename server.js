@@ -1,12 +1,17 @@
 const { error } = require('console')
 const express =require('express')
 const mongoose =require('mongoose')
+require("dotenv").config();
 
 
-
+const passwordReset = require("./routes/passwordReset");
+const users = require("./routes/users");
 var app = express()
 var Router =require('./routes/routes')
 app.use(express.json()) 
+//app.use("/api/users", users);
+//app.use("/api/password-reset", passwordReset);
+
 
 
 

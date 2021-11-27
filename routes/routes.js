@@ -8,14 +8,96 @@ const Ranking =require("../entities/ranking");
 const Notificationn = require("../entities/notification");
 const app = express();
 const jwt = require('jsonwebtoken')
+const Token = require("../entities/token");
+const sendEmail = require("../util/sendmail");
+const Joi = require("joi");
+const crypto = require("crypto");
+const auth = require("../util/middleware")
 
 app.use(express.json()) 
 var bcrypt = require('bcrypt')
 var Crypto = require('crypto-js');
 const { cryptPassword } = require('./cryptage');
+const { User } = require('../entities/user');
 var salt =10
+//
+app.post("/userapi",(req,res)=>{
+  var volunteer = new User({
+      name:req.body.name,
+     
+      email:req.body.email,
+      password:req.body.password,
+     
+  })
 
+  volunteer.save().then(()=>{
+    if (volunteer.isNew == false){
+      console.log("saved data")
+      res.send("saved data")
+    }else{
+      console.log("failed to save data")
+    }
+  })
+});
+//
+app.post("/resetpassword", async (req, res) => {
+  try {
+      const schema = Joi.object({ email: Joi.string().email().required() });
+      const { error } = schema.validate(req.body);
+      if (error) return res.status(400).send(error.details[0].message);
 
+      const user = await Volunteer.findOne({ email: req.body.email });
+      if (!user)
+          return res.status(400).send("user with given email doesn't exist");
+
+      let token = await Token.findOne({ userId: user._id });
+      if (!token) {
+          token = await new Token({
+              userId: user._id,
+              token: crypto.randomBytes(32).toString("hex"),
+          }).save();
+      }
+
+      //const link = `${process.env.BASE_URL}/resetpassword/${user._id}/${token.token}`;
+      //await sendEmail(user.email, "Password reset", link);
+
+      res.send({token:token.token,user:user._id});
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
+});
+//
+app.post("/:userId/:token", async (req, res) => {
+  try {
+      const schema = Joi.object({ password: Joi.string().required() });
+      const { error } = schema.validate(req.body);
+      if (error) return res.status(400).send(error.details[0].message);
+
+      const user = await Volunteer.findById(req.params.userId);
+      if (!user) return res.status(400).send("invalid link or expired");
+
+      const token = await Token.findOne({
+          userId: user._id,
+          token: req.params.token,
+      });
+      if (!token) return res.status(400).send("Invalid link or expired");
+
+      user.password = req.body.password;
+      bcrypt.genSalt(salt,function(err,salt){
+        bcrypt.hash(user.password,salt,async function(err,hash){
+          user.password = hash
+      await user.save();
+        })});
+      await token.delete();
+
+      res.send("password reset sucessfully.");
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
+});
+//
 
 app.post("/add_user", async (request, response) => {
     const user = new userModel(request.body);
@@ -65,9 +147,19 @@ app.get("/users", async (request, response) => {
 
   //fetch a volunteer
 
-  app.get("/volunteers",(req,res)=>{
-    Volunteer.find({}).then((DBitems)=>{
-      res.send(DBitems)
+  app.post("/volunteers",auth,(req,res)=>{
+    const token = req.body.token
+    const email = req.body.email
+   Volunteer.find({}).then((DBitemss)=>{
+      
+     
+      const authUser = DBitemss.find(user => user.email == email)
+      if(authUser){
+        res.send(authUser)
+      }
+      else{
+        res.send("failed to find user")
+      }
     })
   })
 
@@ -409,23 +501,33 @@ app.post('/login', (req, res) => {
       
      
   const authUser = DBitemss.find(user => user.email == email  )
-  console.log("userr"+authUser)
-  bcrypt.compare(password,authUser.password,function(err,result){
-    if (result == true){
-      if(authUser) {
-        // generate a token 
-        const token = jwt.sign({email: email}, "SECRET")
-        if(token) {
-          res.json({token: token})
+  if (authUser){
+    console.log("userr"+authUser)
+    bcrypt.compare(password,authUser.password,function(err,result){
+      if (result == true){
+        if(authUser) {
+          // generate a token 
+          const token = jwt.sign({email: email}, "SECRET")
+          if(token) {
+            authUser.token = token 
+            res.json({token: token,user:authUser})
+            console.log(token)
+          } else {
+            res.json({message: "Authentication Failed", success: false})
+          }
         } else {
-          res.json({message: "Authentication Failed", success: false})
+           res.json({message: "Authentication Failed", success: false})
         }
-      } else {
-         res.json({message: "Authentication Failed", success: false})
+      }else{
+        res.send("password isn't correct")
       }
-    }
+    
+       })
+  }else{
+    res.send("no email found")
+  }
   
-     })
+ 
   })
  
   //console.log(users)
@@ -443,6 +545,8 @@ app.post('/Signup',(req,res)=>{
   const memberDate = req.body.memberDate
   const age = req.body.age
   const description = req.body.description
+
+  //console.log(email)
 
   Volunteer.find({}).then((DBitem)=>{
    //console.log(DBitem)
@@ -479,9 +583,11 @@ app.post('/Signup',(req,res)=>{
           volunteer.save().then(()=>{
             if (volunteer.isNew == false){
               console.log("saved data")
-              res.send("saved data")
+              //res.send("SignUp completed")
+              res.json({user:volunteer})
             }else{
               console.log("failed to save data")
+              res.send("failed to save")
             }
           })
     

@@ -9,7 +9,8 @@ var volunteer = new mongoose.Schema({
         photo :String,
         memberDate: String ,
         age : Number ,
-        description :String
+        description :String,
+        token :String
 
 
 
