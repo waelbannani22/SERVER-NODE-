@@ -21,11 +21,46 @@ const { cryptPassword } = require('./cryptage');
 const { User } = require('../entities/user');
 const findbymail = require('../util/findbymail');
 var salt =10
-//
-app.post("/userapi",(req,res)=>{
+
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express")
+
+
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'TyVolunty',
+      version: '1.0.0',
+    },
+  },
+  apis: ["routes/routes.js"], 
+};
+const swaggerDocs = swaggerJsDoc(options);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+/**
+* @swagger
+* /users:
+*   post:
+*     tags:
+*       - users
+*     description: Creates a new User
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: User
+*         description: User object
+*         in: body
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully created
+*/
+app.post("/users",(req,res)=>{
   var volunteer = new User({
-      name:req.body.name,
-     
+      name:req.body.name,    
       email:req.body.email,
       password:req.body.password,
      
@@ -41,6 +76,7 @@ app.post("/userapi",(req,res)=>{
   })
 });
 //
+
 app.post("/resetpassword", async (req, res) => {
   try {
       const schema = Joi.object({ email: Joi.string().email().required() });
@@ -200,6 +236,21 @@ app.post("/add_user", async (request, response) => {
       response.status(500).send(error);
     }
 });
+
+console.log(swaggerDocs);
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     tags:
+ *       - users
+ *     description: Returns all users
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Json of users
+ */
 
 app.get("/users", async (request, response) => {
     const users = await Volunteer.find({});
@@ -631,6 +682,24 @@ app.post('/login', (req, res) => {
   
 })
 //***********************Signup */
+/**
+* @swagger
+* /Signup:
+*   post:
+*     tags:
+*       - Signup
+*     description: Signup
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: User
+*         description: Signup
+*         in: body
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully created
+*/
 app.post('/Signup',(req,res)=>{
   const username = req.body.username
   const lastname = req.body.lastname
@@ -690,7 +759,7 @@ app.post('/Signup',(req,res)=>{
           }else {
             console.log("mail defini "+ email)
             console.log("mail already exists")
-            res.send("mail already in use")
+            res.status(400).send("mail already in use")
       
           }
         })
