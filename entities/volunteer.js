@@ -15,6 +15,10 @@ var volunteer = new mongoose.Schema({
 
 
 })
+const  findbymail= async (email)=>{
+        const user = Volunteer.find({email : email})
+        return user 
+}
 
 const Volunteer =mongoose.model("Volunteer",volunteer)
-module.exports = Volunteer
+module.exports = Volunteer, findbymail;

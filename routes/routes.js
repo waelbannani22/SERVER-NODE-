@@ -19,6 +19,7 @@ var bcrypt = require('bcrypt')
 var Crypto = require('crypto-js');
 const { cryptPassword } = require('./cryptage');
 const { User } = require('../entities/user');
+const findbymail = require('../util/findbymail');
 var salt =10
 //
 app.post("/userapi",(req,res)=>{
@@ -68,6 +69,96 @@ app.post("/resetpassword", async (req, res) => {
   }
 });
 //
+function makeid(length) {
+  var result           = '';
+  var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  var charactersLength = characters.length;
+  for ( var i = 0; i < length; i++ ) {
+    result += characters.charAt(Math.floor(Math.random() * 
+charactersLength));
+ }
+ return result;
+}
+
+//console.log(makeid(5));
+app.post("/sendmail", async (req, res) => {
+  try {
+      const schema = Joi.object({ email: Joi.string().email().required() });
+      const { error } = schema.validate(req.body);
+      if (error) return res.status(400).send(error.details[0].message);
+
+      const user = await Volunteer.findOne({ email: req.body.email });
+      if (!user)
+          return res.status(400).send("user with given email doesn't exist");
+
+      let token = await Token.findOne({ userId: user._id });
+      if (!token) {
+          token = await new Token({
+              userId: user._id,
+              token: crypto.randomBytes(32).toString("hex"),
+          }).save();
+      }
+
+      //const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+      
+      var code = makeid(5)
+      await sendEmail(user.email, "Password reset", code);
+      res.json({code:code,id : user._id})
+      
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
+});
+//
+
+app.post("/h/:codesent/",  (req, res) => {
+  try {
+    
+      console.log(req.params.codesent)
+      console.log(req.body.password)
+      if (req.body.password === req.params.codesent){
+        return res.status(200).send("match")
+      }else{
+        return res.status(400).send("invalid code")
+      }
+      
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
+});
+//
+app.post("/g/:userId/",async(req,res)=>{
+  
+  try {
+    const schema = Joi.object({ password: Joi.string().required() });
+    const { error } = schema.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const user = await Volunteer.findById(req.params.userId);
+    if (!user) return res.status(400).send("invalid link or expired");
+
+    
+   
+    user.password = req.body.password;
+    bcrypt.genSalt(salt,function(err,salt){
+      bcrypt.hash(user.password,salt,async function(err,hash){
+        user.password = hash
+           await user.save();
+      })});
+  
+
+    res.send("password reset sucessfully.");
+} catch (error) {
+    res.send("An error occured");
+    console.log(error);
+}
+    
+  
+    
+    
+})
 app.post("/:userId/:token", async (req, res) => {
   try {
       const schema = Joi.object({ password: Joi.string().required() });
@@ -87,7 +178,7 @@ app.post("/:userId/:token", async (req, res) => {
       bcrypt.genSalt(salt,function(err,salt){
         bcrypt.hash(user.password,salt,async function(err,hash){
           user.password = hash
-      await user.save();
+             await user.save();
         })});
       await token.delete();
 
@@ -176,22 +267,25 @@ app.get("/users", async (request, response) => {
   })
   //update volunteer
 
-  app.post("/update_volunteer",(req,res)=>{
-    Volunteer.findOneAndUpdate({
-        _id:req.get("id")
+  app.post("/update_volunteer",auth,(req,res)=>{
+    Volunteer.findByIdAndUpdate({
+        _id:req.body.id,
+        token :req.body.token,
+      
+       
     },{
-      username:req.get("username"),
-      lastname:req.get("lastname"),
-      email:req.get("email"),
-      password:req.get("password"),
-      photo:req.get("photo"),
-      memberDate:req.get("memberDate"),
-      age:req.get("age"),
-      description:req.get("description")
+      token :req.body.token,
+      username :req.body.username,
+      lastname :req.body.lastname,
+      
+
     },(err)=>{
         console.log("failed to update"+err)
+        //res.send("failed to update")
     })
     res.send("updated")
+    //console.log(_id)
+   
   })
 //¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤RECRUITER¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
 

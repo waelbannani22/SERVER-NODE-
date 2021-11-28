@@ -16,6 +16,7 @@
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
+    "node-code-generator": "^1.0.3",
     "nodemailer": "^6.7.2"
   }
 }

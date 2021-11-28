@@ -1,20 +1,22 @@
 const nodemailer = require("nodemailer");
 
 const sendEmail = async (email, subject, text) => {
+    let testAccount = await nodemailer.createTestAccount();
+   // console.log(testAccount)
     try {
         const transporter = nodemailer.createTransport({
-            host: 'smtp.example.com',
+            host: "smtp.gmail.com",
            
             port: 587,
-            secure: true,
+            secure: false,
             auth: {
-                user: 'wael.bannani@esprit.tn',
-                pass: 'bB2227804400bB22',
+                user: "wael.bannani@esprit.tn",
+                pass: "bB2227804400bB22",
             },
         });
 
         await transporter.sendMail({
-            from: 'wael.bannani@esprit.tn',
+            from: email,
             to: email,
             subject: subject,
             text: text,
