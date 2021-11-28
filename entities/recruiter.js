@@ -8,7 +8,8 @@ var recruiter = new mongoose.Schema({
         photo :String,
         description :String,
         organisation:String,
-        phone :String
+        phone :String,
+        token :String
 
 
 

@@ -8,6 +8,7 @@ const passwordReset = require("./routes/passwordReset");
 const users = require("./routes/users");
 var app = express()
 var Router =require('./routes/routes')
+var RouterRecruiter = require('./routes/routes_recruiter')
 app.use(express.json()) 
 //app.use("/api/users", users);
 //app.use("/api/password-reset", passwordReset);
@@ -28,6 +29,7 @@ db.once("open", function () {
   console.log("Connected successfully");
 });
 app.use(Router);
+app.use(RouterRecruiter);
 app.listen(3000,()=>{
     console.log("server is running on 3000")
 });

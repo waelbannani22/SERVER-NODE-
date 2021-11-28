@@ -352,19 +352,20 @@ app.post("/update_recruiter",(req,res)=>{
 //¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤CALL¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
 
 //create Call
-app.post("/create_call",(req,res)=>{
+app.post("/create_call",auth,(req,res)=>{
   var call = new Call({
-      name:req.get("name"),
-      city:req.get("city"),
-      lat:req.get("lat"),
-      lng:req.get("lng"),
-      photo:req.get("photo"),
-      dateBegin:req.get("dateBegin"),
-      description:req.get("description"),
-      recruiter:req.get("recruiter"),
-      rating:req.get("rating"),
-      ageGroup:req.get("ageGroup"),
-      category:req.get("category")
+      token : req.body.token,
+      name:req.body.name,
+      city:req.body.city,
+      lat:req.body.lat,
+      lng:req.body.lng,
+      photo:req.body.photo,
+      dateBegin:req.body.dateBegin,
+      description:req.body.description,
+      recruiter:req.body.recruiter,
+      rating:req.body.rating,
+      ageGroup:req.body.ageGroup,
+      category:req.body.category
 
   })
 
