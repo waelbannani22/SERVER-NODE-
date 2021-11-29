@@ -49,9 +49,6 @@ this project is made with [http://www.nodejs.org] and [https://wwww.mongodb.com]
   ## Learn MongoDB
 
   https://university.mongodb.com/
-  
-  ## Swagger UI 
-  -[Link to Swagger](http://localhost:3000/TyVolunty/)
 
 ## LICENSE
 
