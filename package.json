@@ -18,8 +18,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.0.12",
     "node-code-generator": "^1.0.3",
-    "nodemailer": "^6.7.2",
-    "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.1.6"
+    "nodemailer": "^6.7.2"
+   
   }
 }
