@@ -152,7 +152,10 @@ app.post("/create_call",auth,(req,res)=>{
       recruiter:req.body.recruiter,
       rating:req.body.rating,
       ageGroup:req.body.ageGroup,
-      category:req.body.category
+      category:req.body.category,
+      
+      
+     
 
   })
 
@@ -166,6 +169,43 @@ app.post("/create_call",auth,(req,res)=>{
     }
   })
 })
+//fetch posts
+app.post('/FetchPostsByRecruiter',auth, (req, res) => {
+  const token = req.body.token
+  const id = req.body.id 
+  //console.log(username)
+  
+   Call.find( { recruiter: { $in: [ id] } }  ).then((DBitems)=>{
+    if (DBitems){
+      console.log("userr"+DBitems)
+    
+       
+          
+            
+           
+             
+              res.status(200).json({call: DBitems})
+             console.log("success")
+            
+          
+       
+         
+    }else{
+      res.status(400).send({message:"no data"})
+    }
+  })
+      
+     
+  
+
+  
+ 
+  })
+ 
+  //console.log(users)
+  //const authUser = (users.find(user => user.username.toLowerCase()  == username.toLowerCase()  && user.password == password))
+ 
+  
 
 
   module.exports = app;

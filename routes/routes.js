@@ -23,7 +23,8 @@ const findbymail = require('../util/findbymail');
 var salt =10
 
 const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express")
+const swaggerUi = require("swagger-ui-express");
+const VolunteerCall = require('../entities/volunteerCall');
 
 
 
@@ -758,7 +759,7 @@ app.post('/Signup',(req,res)=>{
             
           }else {
             console.log("mail defini "+ email)
-            console.log("mail already exists")
+            //console.log("mail already exists")
             res.status(400).send("mail already in use")
       
           }
@@ -769,5 +770,110 @@ app.post('/Signup',(req,res)=>{
 
   })
 
+  
 })
+app.post('/VolunteerCall', (req, res) => {
+  const callId = req.body.callId
+  const id = req.body.idV 
+  VolunteerCall.find({}).then((DBitem)=>{
+    console.log(DBitem)
+  var db = DBitem.find(user =>user.idV == id && user.callId == callId)
+  console.log(db)
+    if (!db ){
+      var vC = new VolunteerCall({
+        username : req.body.username,
+        lastname :req.body.lastname,
+        email :req.body.email,
+        
+        photo :req.body.phone,
+        memberDate: req.body.memberDate ,
+        age : req.body.age ,
+        description :req.body.description,
+        callId :callId ,
+        idV : id,
+        status : "pending"
+      })
+      vC.save();
+      res.status(200).json(vC)
+    }else{
+      res.status(400).json({"message":"erreur"})
+    }
+ 
+})
+  
+})
+app.post('/FetchPostsById', (req, res) => {
+  const token = req.body.token
+  const id = req.body.callId 
+  const idv = req.body.idv
+  //console.log(username)
+  
+   VolunteerCall.find( { callId: { $in: [ id] } }  ).then((DBitems)=>{
+    if (DBitems){
+      console.log("userr"+DBitems)
+    
+       
+          
+            
+           
+             
+              res.status(200).json({call: DBitems})
+             console.log("success")
+            
+          
+       
+         
+    }else{
+      res.status(400).json({message:"no data"})
+    }
+  })
+      
+     
+  
+
+  
+ 
+  })
+  app.post('/FetchPostsByIDVACCEPT', async(req, res) => {
+    const token = req.body.token
+    const id = req.body.callId 
+    const idv = req.body.idv
+    //console.log(username)
+    
+     const volu= await VolunteerCall.findOne({
+       callId : id,
+       idV : idv
+     }  );
+     console.log(volu)
+     if (volu){
+      volu.status = "accepted"
+      volu.save();
+      console.log(volu)
+      res.status(200).json({message :"accepted",body:volu})
+     }else{
+        res.status(400).json({message : "erreur"})
+     }
+ 
+    })
+    app.post('/FetchPostsByIDVDecline', async(req, res) => {
+      
+      const id = req.body.callId 
+      const idv = req.body.idv
+      //console.log(username)
+      
+       const volu= await VolunteerCall.findOne({
+         callId : id,
+         idV : idv
+       }  );
+       console.log(volu)
+       if (volu){
+        volu.status = "declined"
+        volu.save();
+        res.status(200).json({message :"decline",body:volu})
+       }else{
+          res.status(400).json({message : "erreur"})
+       }
+   
+      })
+ 
  module.exports = app;
