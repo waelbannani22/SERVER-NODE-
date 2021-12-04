@@ -403,33 +403,7 @@ app.post("/update_recruiter",(req,res)=>{
 
 //¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤CALL¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
 
-//create Call
-app.post("/create_call",auth,(req,res)=>{
-  var call = new Call({
-      token : req.body.token,
-      name:req.body.name,
-      city:req.body.city,
-      lat:req.body.lat,
-      lng:req.body.lng,
-      photo:req.body.photo,
-      dateBegin:req.body.dateBegin,
-      description:req.body.description,
-      recruiter:req.body.recruiter,
-      rating:req.body.rating,
-      ageGroup:req.body.ageGroup,
-      category:req.body.category
 
-  })
-
-  call.save().then(()=>{
-    if (call.isNew == false){
-      console.log("saved data")
-      res.send("saved data")
-    }else{
-      console.log("failed to save call")
-    }
-  })
-})
 
 //fetch call
 app.get("/calls",(req,res)=>{
@@ -793,6 +767,7 @@ app.post('/VolunteerCall', (req, res) => {
         idV : id,
         status : "pending"
       })
+      Call.findOneAndUpdate({_id :callId}, {$inc : { pending : 1}}).exec();
       vC.save();
       res.status(200).json(vC)
     }else{
@@ -844,11 +819,17 @@ app.post('/FetchPostsById', (req, res) => {
        callId : id,
        idV : idv
      }  );
+     
      console.log(volu)
      if (volu){
       volu.status = "accepted"
       volu.save();
-      console.log(volu)
+      //const call = await Call.findOne({_id : id})
+     
+      Call.findOneAndUpdate({_id :id}, {$inc : {accepted : 1,pending : -1}}).exec();
+      //console.log(call)
+      
+      //console.log(volu)
       res.status(200).json({message :"accepted",body:volu})
      }else{
         res.status(400).json({message : "erreur"})
@@ -869,11 +850,29 @@ app.post('/FetchPostsById', (req, res) => {
        if (volu){
         volu.status = "declined"
         volu.save();
+        Call.findOneAndUpdate({_id :id}, {$inc : {declined : 1,pending : -1}}).exec();
         res.status(200).json({message :"decline",body:volu})
        }else{
           res.status(400).json({message : "erreur"})
        }
    
       })
+      app.post('/fetchByCategory', async(req, res) => {
+      
+        const category = req.body.category 
+       
+        
+        Call.find( { category: { $in: [ category] } }  ).then((DBitems)=>{
+          if (DBitems){
+            console.log("userr"+DBitems)
+           res.status(200).json({call: DBitems})
+                   console.log("success")
+              
+          }else{
+            res.status(400).json({message:"no data"})
+          }
+        })
+     
+        })
  
  module.exports = app;

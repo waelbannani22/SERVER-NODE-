@@ -153,8 +153,11 @@ app.post("/create_call",auth,(req,res)=>{
       rating:req.body.rating,
       ageGroup:req.body.ageGroup,
       category:req.body.category,
-      
-      
+      pending : req.body.pending,
+      accepted : req.body.accepted,
+      declined : req.body.declined,
+      test : req.body.test
+
      
 
   })
@@ -178,32 +181,33 @@ app.post('/FetchPostsByRecruiter',auth, (req, res) => {
    Call.find( { recruiter: { $in: [ id] } }  ).then((DBitems)=>{
     if (DBitems){
       console.log("userr"+DBitems)
-    
-       
-          
-            
-           
-             
-              res.status(200).json({call: DBitems})
+     res.status(200).json({call: DBitems})
              console.log("success")
-            
-          
-       
-         
+        
     }else{
       res.status(400).send({message:"no data"})
     }
   })
-      
-     
-  
-
-  
+   })
+   //fetch accepted
+   app.post('/fetchAceepted', (req, res) => {
+    const id = req.body.callId
+    const idV = req.body.idV
+    //console.log(username)
+    
+     Call.find( { _id: { $in: [ id] } }  ).then((DBitems)=>{
+      if (DBitems){
+        console.log("userr"+DBitems)
+       res.status(200).json({call: DBitems})
+               console.log("success")
+          
+      }else{
+        res.status(400).send({message:"no data"})
+      }
+    })
+     })
  
-  })
  
-  //console.log(users)
-  //const authUser = (users.find(user => user.username.toLowerCase()  == username.toLowerCase()  && user.password == password))
  
   
 

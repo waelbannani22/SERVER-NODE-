@@ -2,7 +2,7 @@
 var mongoose =require('mongoose')
 
 
-const Volunteer = require('./volunteer')
+
 
 
 var call = new mongoose.Schema({
@@ -18,7 +18,10 @@ var call = new mongoose.Schema({
         rating :String,
         ageGroup :String,
         category :String,
-        
+        test:String,
+        pending : { type: Number, min: -1 },
+        accepted : { type: Number, min: 0 },
+        declined : { type: Number, min: 0}, 
        
         
 
