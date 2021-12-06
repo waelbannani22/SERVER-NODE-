@@ -8,7 +8,7 @@ this project is made with [http://www.nodejs.org] and [https://wwww.mongodb.com]
 
 ## To use this repo you'll need to clone it or download it 
 
-`git clone xxxx`
+`git clone https://github.com/waelbannani22/SERVER-NODE-.git`
 ## to run the server :
 `node server.js`
 
