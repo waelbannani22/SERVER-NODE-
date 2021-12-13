@@ -13,7 +13,7 @@ const sendEmail = require("../util/sendmail");
 const Joi = require("joi");
 const crypto = require("crypto");
 const auth = require("../util/middleware")
-
+const moment = require('moment');
 app.use(express.json()) 
 var bcrypt = require('bcrypt')
 var Crypto = require('crypto-js');
@@ -25,6 +25,8 @@ var salt =10
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const VolunteerCall = require('../entities/volunteerCall');
+const Notification = require('../entities/notification');
+const { date } = require('joi');
 
 
 
@@ -36,7 +38,7 @@ const options = {
       version: '1.0.0',
     },
   },
-  apis: ["routes/routes.js"], 
+  apis: ["routes/*"], 
 };
 const swaggerDocs = swaggerJsDoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
@@ -290,13 +292,13 @@ app.get("/users", async (request, response) => {
 
   //fetch a volunteer
 
-  app.post("/volunteers",auth,(req,res)=>{
-    const token = req.body.token
-    const email = req.body.email
+  app.post("/volunteers",(req,res)=>{
+   
+    const id = req.body.email
    Volunteer.find({}).then((DBitemss)=>{
       
      
-      const authUser = DBitemss.find(user => user.email == email)
+      const authUser = DBitemss.find(user => user._id == id)
       if(authUser){
         res.send(authUser)
       }
@@ -414,13 +416,14 @@ app.get("/calls",(req,res)=>{
 //remove call
 app.post("/delete_call",(req,res)=>{
   Call.findOneAndRemove({
-    _id: req.get("id")
+    _id: req.body.id
   },(err)=>{
     console.log("deleted")
   }
   )
   res.send("deleted!")
 })
+
 //update call
 app.post("/update_call",(req,res)=>{
   Call.findOneAndUpdate({
@@ -712,9 +715,10 @@ app.post('/Signup',(req,res)=>{
               email:req.body.email,
               password:hash,
               photo:req.body.photo,
-              memberDate:req.body.memberDate,
+              memberDate:Date.now(),
               age:req.body.age,
-              description:req.body.description
+              description:req.body.description,
+              fbUser : false
     
       
           })
@@ -753,7 +757,7 @@ app.post('/VolunteerCall', (req, res) => {
     console.log(DBitem)
   var db = DBitem.find(user =>user.idV == id && user.callId == callId)
   console.log(db)
-    if (!db ){
+    if (db=[] ){
       var vC = new VolunteerCall({
         username : req.body.username,
         lastname :req.body.lastname,
@@ -769,9 +773,9 @@ app.post('/VolunteerCall', (req, res) => {
       })
       Call.findOneAndUpdate({_id :callId}, {$inc : { pending : 1}}).exec();
       vC.save();
-      res.status(200).json(vC)
+      res.json(vC)
     }else{
-      res.status(400).json({"message":"erreur"})
+      res.json({message:"erreur",success: false})
     }
  
 })
@@ -787,32 +791,20 @@ app.post('/FetchPostsById', (req, res) => {
     if (DBitems){
       console.log("userr"+DBitems)
     
-       
-          
-            
-           
-             
               res.status(200).json({call: DBitems})
              console.log("success")
-            
-          
-       
-         
+           
     }else{
       res.status(400).json({message:"no data"})
     }
   })
-      
-     
   
-
-  
- 
   })
   app.post('/FetchPostsByIDVACCEPT', async(req, res) => {
     const token = req.body.token
     const id = req.body.callId 
     const idv = req.body.idv
+    const email = req.body.email
     //console.log(username)
     
      const volu= await VolunteerCall.findOne({
@@ -825,7 +817,16 @@ app.post('/FetchPostsById', (req, res) => {
       volu.status = "accepted"
       volu.save();
       //const call = await Call.findOne({_id : id})
-     
+      var code = 'your request to call with id  '+id
+      await sendEmail(email, "your request has been accepted", code);
+      var noti = new Notification({
+        date : Date.now(),
+        nameExperience: req.body.name,
+        contenu : "you have been accepted to participate in ",
+        volunteerId :idv ,
+        callId : id
+      })
+      noti.save()
       Call.findOneAndUpdate({_id :id}, {$inc : {accepted : 1,pending : -1}}).exec();
       //console.log(call)
       
@@ -850,7 +851,16 @@ app.post('/FetchPostsById', (req, res) => {
        if (volu){
         volu.status = "declined"
         volu.save();
+        var da = Date.now()
         Call.findOneAndUpdate({_id :id}, {$inc : {declined : 1,pending : -1}}).exec();
+        var noti = new Notification({
+          date : moment(da).format('YYYY-MM-DD'),
+          nameExperience: req.body.name,
+          contenu : "you have been rejected from  ",
+          volunteerId :idv ,
+          callId : id
+        })
+        noti.save()
         res.status(200).json({message :"decline",body:volu})
        }else{
           res.status(400).json({message : "erreur"})
@@ -874,5 +884,155 @@ app.post('/FetchPostsById', (req, res) => {
         })
      
         })
- 
+        app.post('/fetchUserById',async(req,res)=>{
+          const id = req.body.id
+         const user = await Volunteer.findById({
+            _id : id
+            
+          })
+          if (user){
+            res.status(200).json({users : user})
+          }else{
+             res.status(400).json({message : "no user found"})
+          }
+         
+
+        })
+        app.post('/fetchByCategory', async(req, res) => {
+      
+        const category = req.body.category 
+       
+        
+        Call.find( { category: { $in: [ category] } }  ).then((DBitems)=>{
+          if (DBitems){
+            console.log("userr"+DBitems)
+           res.status(200).json({call: DBitems})
+                   console.log("success")
+              
+          }else{
+            res.status(400).json({message:"no data"})
+          }
+        })
+     
+        })
+        app.post('/fetchUserById',async(req,res)=>{
+          const id = req.body.id
+         const user = await Volunteer.findById({
+            _id : id
+            
+          })
+          if (user){
+            res.status(200).json({users : user})
+          }else{
+             res.status(400).json({message : "no user found"})
+          }
+         
+
+        })
+          app.post('/fetchNotificationById',async(req,res)=>{
+            const id = req.body.id
+           const noti = await Notification.find({
+            volunteerId : id
+              
+            })
+            if (noti){
+              res.status(200).json({notification : noti})
+            }else{
+               res.status(400).json({message : "no user found"})
+            }
+           
+  
+          })
+          app.post('/fetchReviewById',async(req,res)=>{
+            const id = req.body.id
+           const noti = await Review.find({
+            callId : id
+              
+            })
+            if (noti){
+              res.status(200).json({review : noti})
+            }else{
+               res.status(400).json({message : "no user found"})
+            }
+           
+  
+          })
+          app.post('/addReview',async(req,res)=>{
+            const id = req.body.id
+            const name = req.body.name
+            const idv = req.body.idv
+            const desc = req.body.desc
+           const noti = await Review.find({
+            callId : id,
+            idv:idv
+              
+            })
+            console.log("exist",noti)
+            if (!noti){
+              res.status(400).json({message : "added already"})
+              console.log("400")
+              
+            }else{
+              console.log("200")
+               var rev = new Review({
+                 callId : id,
+                 idv : idv,
+                 date : moment(Date.now()).format('YYYY-MM-DD'),
+                 reviewerName : name,
+                 reviewDescription : desc
+
+               })
+               console.log(rev)
+               rev.save();
+               res.status(200).json({review:rev})
+            }
+           
+  
+          })
+          app.post('/createVolunteerFB',async(req,res)=>{
+            const name = req.body.name
+            const last = req.body.last
+            const email = req.body.email
+            const picture = req.body.picture
+            const id = req.body.id
+            Volunteer.findOne( { email: email }  ).then((DBitems)=>{
+              if (DBitems){
+                console.log("db",DBitems)
+               res.status(200).json({user: DBitems})
+                       
+                  
+              }else{
+                console.log("cv")
+                const token = jwt.sign({email: email}, "SECRET")
+                var vb =   new Volunteer({
+                  fbid:id,
+                  email : email,
+                  username:name,
+                  lastname:last,
+                  photo : picture,
+                  fbUser : true,
+                  token : token
+                })
+                console.log(vb)
+                vb.save()
+                res.status(200).json({user:vb})
+              }
+            })
+           
+  
+          })
+          app.post('/fetchUserEmail',async(req,res)=>{
+            const fbid = req.body.fbid
+           const noti = await Volunteer.find({
+            fbid : fbid
+              
+            })
+            if (noti){
+              res.status(200).json({user : noti})
+            }else{
+               res.status(400).json({message : "no user found"})
+            }
+           
+  
+          })
  module.exports = app;

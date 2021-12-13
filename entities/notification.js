@@ -6,7 +6,8 @@ var notification = new mongoose.Schema({
     date:String,
     nameExperience : String,
     volunteerId :String,
-    type : String
+    contenu : String,
+    callId : String
 })
 const Notification =mongoose.model("Notification",notification)
 module.exports = Notification

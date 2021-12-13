@@ -20,6 +20,9 @@ var Crypto = require('crypto-js');
 const { cryptPassword } = require('./cryptage');
 const { User } = require('../entities/user');
 const findbymail = require('../util/findbymail');
+const upload = require('../util/storage');
+const Donation = require('../entities/donation');
+
 var salt =10
 
 /***********************Signup */
@@ -94,7 +97,24 @@ app.post('/SignupRecrruiter',(req,res)=>{
   
   })
   //$$$$$$$$$$$$$$$$$LOGIN$$$$
-
+/**
+* @swagger
+* /loginRecruiter:
+*   post:
+*     tags:
+*       - login
+*     description: login
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: User
+*         description: User object
+*         in: body
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully created
+*/
   app.post('/loginRecruiter', (req, res) => {
     console.log("heloo")
     const email = req.body.email 
@@ -139,27 +159,43 @@ app.post('/SignupRecrruiter',(req,res)=>{
     
   })
   ////create Call
-app.post("/create_call",auth,(req,res)=>{
+  //,upload.single('image')
+  /**
+* @swagger
+* /create_call:
+*   post:
+*     tags:
+*       - create a call
+*     description: login
+*     produces:
+*       - application/json
+*     parameters:
+*       - name: call
+*         description: call object
+*         in: body
+*         required: true
+*     responses:
+*       200:
+*         description: Successfully created
+*/
+app.post("/create_call",upload.single('image'),auth,(req,res)=>{
   var call = new Call({
       token : req.body.token,
       name:req.body.name,
       city:req.body.city,
       // lat:req.body.lat,
       // lng:req.body.lng,
-      photo:req.body.photo,
+      photo:req.file.filename,
       dateBegin:req.body.dateBegin,
       description:req.body.description,
       recruiter:req.body.recruiter,
       rating:req.body.rating,
       ageGroup:req.body.ageGroup,
       category:req.body.category,
-      pending : req.body.pending,
-      accepted : req.body.accepted,
-      declined : req.body.declined,
-      test : req.body.test
-
+      pending : 0,
+      accepted : 0,
+      declined : 0
      
-
   })
 
   call.save().then(()=>{
@@ -206,10 +242,47 @@ app.post('/FetchPostsByRecruiter',auth, (req, res) => {
       }
     })
      })
- 
- 
- 
-  
+     //create donation
+     app.post('/addDonation',upload.single('image'),(req,res)=>{
+       var donation = new Donation({
+         recruiterId : req.body.recruiterId,
+         name : req.body.name,
+         location : req.body.location,
+         organisation : req.body.organisation,
+         deadline : req.body.deadline,
+         phone : req.body.phone,
+         photo : req.file.filename,
+         description : req.body.description,
+         montantTotal : req.body.montantTotal,
+         montantInstant : 0
+       })
+       donation.save().then(()=>{
+        if (donation.isNew == false){
+          console.log("saved data")
+          res.status(200).send("saved data")
+        }
+        
+      })
 
-
+     })
+     //fetch donation by recruiter
+     app.post('/fetchDonationByRecruiter',async(req,res)=>{
+       const id = req.body.id
+       Donation.find({recruiterId: { $in: [ id] }}).then((Dbitem)=>{
+         if (Dbitem){
+           console.log("find",Dbitem)
+           res.status(200).json({donation:Dbitem})
+         }else{
+          console.log("no data")
+          res.status(400).json({message:"nodata"})
+         }
+       })
+     })
+     //fetch donations
+     app.get('/getDonations', (req,res)=>{
+       Donation.find({}).then((dbitem)=>{
+         res.status(200).json({donation:dbitem})
+       })
+     })
+ 
   module.exports = app;

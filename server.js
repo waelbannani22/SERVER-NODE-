@@ -9,7 +9,10 @@ const users = require("./routes/users");
 var app = express()
 var Router =require('./routes/routes')
 var RouterRecruiter = require('./routes/routes_recruiter')
+var path = require('path')
 app.use(express.json()) 
+app.use(express.static('public'))
+app.use('/img',express.static('uploads'))
 //app.use("/api/users", users);
 //app.use("/api/password-reset", passwordReset);
 

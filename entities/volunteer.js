@@ -10,7 +10,9 @@ var volunteer = new mongoose.Schema({
         memberDate: String ,
         age : String ,
         description :String,
-        token :String
+        token :String,
+        fbid:String,
+        fbUser : Boolean
 
 
 

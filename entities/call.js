@@ -1,10 +1,6 @@
 
 var mongoose =require('mongoose')
 
-
-
-
-
 var call = new mongoose.Schema({
         name : String,
         
@@ -19,14 +15,10 @@ var call = new mongoose.Schema({
         ageGroup :String,
         category :String,
         test:String,
-        pending : { type: Number, min: -1 },
+        pending : { type: Number, min: 0 },
         accepted : { type: Number, min: 0 },
         declined : { type: Number, min: 0}, 
-       
-        
-
-
-
+     
 })
 
 const Call =mongoose.model("Call",call)
