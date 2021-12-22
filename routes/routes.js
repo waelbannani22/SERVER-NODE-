@@ -27,6 +27,7 @@ const swaggerUi = require("swagger-ui-express");
 const VolunteerCall = require('../entities/volunteerCall');
 const Notification = require('../entities/notification');
 const { date } = require('joi');
+const upload = require('../util/storage');
 
 
 
@@ -127,6 +128,35 @@ app.post("/sendmail", async (req, res) => {
       if (error) return res.status(400).send(error.details[0].message);
 
       const user = await Volunteer.findOne({ email: req.body.email });
+      if (!user)
+          return res.status(400).send("user with given email doesn't exist");
+
+      let token = await Token.findOne({ userId: user._id });
+      if (!token) {
+          token = await new Token({
+              userId: user._id,
+              token: crypto.randomBytes(32).toString("hex"),
+          }).save();
+      }
+
+      //const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+      
+      var code = makeid(5)
+      await sendEmail(user.email, "Password reset", code);
+      res.json({code:code,id : user._id})
+      
+  } catch (error) {
+      res.send("An error occured");
+      console.log(error);
+  }
+});
+app.post("/verifmailRecruiter", async (req, res) => {
+  try {
+     /*const schema = Joi.object({ email: Joi.string().email().required() });
+      const { error } = schema.validate(req.body);
+      if (error) return res.status(400).send(error.details[0].message);
+*/
+      const user = await Recruiter.findOne({ email: req.body.email });
       if (!user)
           return res.status(400).send("user with given email doesn't exist");
 
@@ -331,7 +361,7 @@ app.get("/users", async (request, response) => {
       token :req.body.token,
       username :req.body.username,
       lastname :req.body.lastname,
-      
+      photo :  req.file.filename
 
     },(err)=>{
         console.log("failed to update"+err)
@@ -385,7 +415,7 @@ app.post("/delete_recruiter",(req,res)=>{
   res.send("deleted!")
 })
 //update recruiter
-app.post("/update_recruiter",(req,res)=>{
+app.post("/update_recruiter",upload.single('image'),(req,res)=>{
   Recruiter.findOneAndUpdate({
       id:req.get("id")
   },{
@@ -936,9 +966,11 @@ app.post('/FetchPostsById', (req, res) => {
               
             })
             if (noti){
-              res.status(200).json({notification : noti})
+              var i =0;
+              console.log (i++)
+               return res.status(200).json({notification : noti})
             }else{
-               res.status(400).json({message : "no user found"})
+               return res.status(400).json({message : "no user found"})
             }
            
   

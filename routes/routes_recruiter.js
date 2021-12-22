@@ -284,5 +284,145 @@ app.post('/FetchPostsByRecruiter',auth, (req, res) => {
          res.status(200).json({donation:dbitem})
        })
      })
- 
+     //fetch by id 
+     app.post('/fetchRecruiterById',async(req,res)=>{
+      const fbid = req.body.id
+     const noti = await Recruiter.find({
+      _id : fbid
+        
+      })
+      if (noti){
+        console.log(noti)
+        res.status(200).json({user : noti})
+      }else{
+         res.status(400).json({message : "no user found"})
+      }
+     
+
+    })
+    //update recruiter
+    app.post("/update_recruiter1",upload.single('image'),async(req,res)=>{
+     
+          const id = req.body.id
+          const name = req.body.name
+          const phone = req.body.phone
+         const rec = await Recruiter.findById({_id:id})
+         if (rec != [] ){
+          Recruiter.findOneAndUpdate({_id :id}, {name : name,phone :phone,photo:req.file.filename}).exec();
+          console.log("updated")
+          res.status(200).send("updated")
+         }else{
+          console.log(" not updated")
+          res.status(200).send("unot pdated")
+         }
+        
+       
+     
+    })
+    //reset password
+    app.post("/:userId", async (req, res) => {
+      try {
+          const schema = Joi.object({ password: Joi.string().required() });
+          const { error } = schema.validate(req.body);
+          if (error) return res.status(400).send(error.details[0].message);
+    
+          const user = await Recruiter.findById(req.params.userId);
+          if (!user) return res.status(400).send("invalid link or expired");
+    
+          
+     
+    
+          user.password = req.body.password;
+          bcrypt.genSalt(salt,function(err,salt){
+            bcrypt.hash(user.password,salt,async function(err,hash){
+              user.password = hash
+                 await user.save();
+            })});
+         
+    
+          res.send("password reset sucessfully.");
+      } catch (error) {
+          res.send("An error occured");
+          console.log(error);
+      }
+    });
+    //forget
+    app.post("/verifmailRecruiter", async (req, res) => {
+      try {
+         /*const schema = Joi.object({ email: Joi.string().email().required() });
+          const { error } = schema.validate(req.body);
+          if (error) return res.status(400).send(error.details[0].message);
+    */
+          const user = await Recruiter.findOne({ email: req.body.email });
+          if (!user)
+              return res.status(400).send("user with given email doesn't exist");
+    
+          let token = await Token.findOne({ userId: user._id });
+          if (!token) {
+              token = await new Token({
+                  userId: user._id,
+                  token: crypto.randomBytes(32).toString("hex"),
+              }).save();
+          }
+    
+          //const link = `${process.env.BASE_URL}/password-reset/${user._id}/${token.token}`;
+          
+          var code = makeid(5)
+          await sendEmail(user.email, "Password reset", code);
+          res.json({code:code,id : user._id})
+          
+      } catch (error) {
+          res.send("An error occured");
+          console.log(error);
+      }
+    });
+    //
+    
+    app.post("/a/:codesent/",  (req, res) => {
+      try {
+        
+          console.log(req.params.codesent)
+          console.log(req.body.password)
+          if (req.body.password === req.params.codesent){
+            return res.status(200).send("match")
+          }else{
+            return res.status(400).send("invalid code")
+          }
+          
+      } catch (error) {
+          res.send("An error occured");
+          console.log(error);
+      }
+    });
+    //
+    app.post("/b/:userId/",async(req,res)=>{
+      
+      try {
+        const schema = Joi.object({ password: Joi.string().required() });
+        const { error } = schema.validate(req.body);
+        if (error) return res.status(400).send(error.details[0].message);
+    
+        const user = await Recruiter.findById(req.params.userId);
+        if (!user) return res.status(400).send("invalid link or expired");
+    
+        
+       
+        user.password = req.body.password;
+        bcrypt.genSalt(salt,function(err,salt){
+          bcrypt.hash(user.password,salt,async function(err,hash){
+            user.password = hash
+               await user.save();
+          })});
+      
+    
+        res.send("password reset sucessfully.");
+    } catch (error) {
+        res.send("An error occured");
+        console.log(error);
+    }
+        
+      
+        
+        
+    })
   module.exports = app;
