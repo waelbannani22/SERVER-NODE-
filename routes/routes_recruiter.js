@@ -378,19 +378,19 @@ app.post('/FetchPostsByRecruiter',auth, (req, res) => {
     });
     //
     
-    app.post("/a/:codesent/",  (req, res) => {
+    app.post("/ab/:codesente",  (req, res) => {
       try {
         
-          console.log(req.params.codesent)
+          console.log(req.params.codesente)
           console.log(req.body.password)
-          if (req.body.password === req.params.codesent){
+          if ((req.body.password).trim() === req.params.codesente){
             return res.status(200).send("match")
           }else{
             return res.status(400).send("invalid code")
           }
           
       } catch (error) {
-          res.send("An error occured");
+          res.status(400).send("An error occured");
           console.log(error);
       }
     });

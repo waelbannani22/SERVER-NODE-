@@ -321,7 +321,19 @@ app.get("/users", async (request, response) => {
   })
 
   //fetch a volunteer
-
+/**
+ * @swagger
+ * /volunteers:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: Returns user 
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Json of users
+ */
   app.post("/volunteers",(req,res)=>{
    
     const id = req.body.email
@@ -351,7 +363,7 @@ app.get("/users", async (request, response) => {
   })
   //update volunteer
 
-  app.post("/update_volunteer",auth,(req,res)=>{
+  app.post("/update_volunteer",upload.single('image'),auth,(req,res)=>{
     Volunteer.findByIdAndUpdate({
         _id:req.body.id,
         token :req.body.token,
@@ -361,7 +373,9 @@ app.get("/users", async (request, response) => {
       token :req.body.token,
       username :req.body.username,
       lastname :req.body.lastname,
-      photo :  req.file.filename
+      photo :  req.file.filename,
+      age : req.body.age,
+      phone : req.body.phone
 
     },(err)=>{
         console.log("failed to update"+err)
@@ -848,9 +862,10 @@ app.post('/FetchPostsById', (req, res) => {
       volu.save();
       //const call = await Call.findOne({_id : id})
       var code = 'your request to call with id  '+id
+      var da = Date.now()
       await sendEmail(email, "your request has been accepted", code);
       var noti = new Notification({
-        date : Date.now(),
+        date : moment(da).format('YYYY-MM-DD'),
         nameExperience: req.body.name,
         contenu : "you have been accepted to participate in ",
         volunteerId :idv ,
@@ -1027,6 +1042,8 @@ app.post('/FetchPostsById', (req, res) => {
             const email = req.body.email
             const picture = req.body.picture
             const id = req.body.id
+            const age = req.body.age
+            const phone = req.body.phone
             Volunteer.findOne( { email: email }  ).then((DBitems)=>{
               if (DBitems){
                 console.log("db",DBitems)
@@ -1043,7 +1060,9 @@ app.post('/FetchPostsById', (req, res) => {
                   lastname:last,
                   photo : picture,
                   fbUser : true,
-                  token : token
+                  token : token,
+                  age : age,
+                  phone : phone
                 })
                 console.log(vb)
                 vb.save()
@@ -1067,4 +1086,32 @@ app.post('/FetchPostsById', (req, res) => {
            
   
           })
+          app.post('/encours',async(req,res)=>{
+            const idV = req.body.idV
+            VolunteerCall.find( { idV: { $in: [ idV] } }  ).then((DBitems)=>{
+            if (DBitems){
+              console.log(DBitems)
+              res.status(200).json({user : DBitems})
+            }else{
+               res.status(400).json({message : "no user found"})
+            }
+           
+          })
+          })
+          app.post('/fetchbycall', (req, res) => {
+            const token = req.body.token
+            const callId = req.body.callId 
+            //console.log(username)
+            
+             Call.find( { _id: { $in: [ callId] } }  ).then((DBitems)=>{
+              if (DBitems){
+                console.log("userr"+DBitems)
+               res.status(200).json({call: DBitems})
+                       console.log("success")
+                  
+              }else{
+                res.status(400).send({message:"no data"})
+              }
+            })
+             })
  module.exports = app;

@@ -12,8 +12,8 @@ var volunteer = new mongoose.Schema({
         description :String,
         token :String,
         fbid:String,
-        fbUser : Boolean
-
+        fbUser : Boolean,
+        phone : String
 
 
 })

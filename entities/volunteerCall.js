@@ -14,9 +14,6 @@ var volunteerCall = new mongoose.Schema({
         idV :String,
         status : String
 
-
-
-
 })
 
 
