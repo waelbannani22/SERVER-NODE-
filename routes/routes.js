@@ -703,6 +703,49 @@ app.post('/login', (req, res) => {
  
   
 })
+app.post('/loginandroid', (req, res) => {
+  console.log("heloo")
+  const email = req.body.email 
+  //console.log(username)
+  const password = req.body.password
+   Volunteer.find({}).then((DBitemss)=>{
+      
+     
+  const authUser = DBitemss.find(user => user.email == email  )
+  if (authUser){
+    console.log("userr"+authUser)
+    bcrypt.compare(password,authUser.password,function(err,result){
+      if (result == true){
+        if(authUser) {
+          // generate a token 
+          const token = jwt.sign({email: email}, "SECRET")
+          if(token) {
+            authUser.token = token 
+            res.json(authUser)
+            console.log(token)
+          } else {
+            res.json({message: "Authentication Failed", success: false})
+          }
+        } else {
+           res.json({message: "Authentication Failed", success: false})
+        }
+      }else{
+        res.send("password isn't correct")
+      }
+    
+       })
+  }else{
+    res.send("no email found")
+  }
+  
+ 
+  })
+ 
+  //console.log(users)
+  //const authUser = (users.find(user => user.username.toLowerCase()  == username.toLowerCase()  && user.password == password))
+ 
+  
+})
 //***********************Signup */
 /**
 * @swagger
