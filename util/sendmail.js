@@ -10,8 +10,8 @@ const sendEmail = async (email, subject, text) => {
             port: 587,
             secure: false,
             auth: {
-                user: "wael.bannani@esprit.tn",
-                pass: "bB2227804400bB22",
+                user: "allwebsiteinone@gmail.com",
+                pass: "allinone123",
             },
         });
 
