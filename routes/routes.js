@@ -228,6 +228,36 @@ app.post("/g/:userId/",async(req,res)=>{
     
     
 })
+app.post("/k/:userId/",async(req,res)=>{
+  
+  try {
+    const schema = Joi.object({ password: Joi.string().required() });
+    const { error } = schema.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const user = await Volunteer.findById(req.params.userId);
+    if (!user) return res.status(400).send("invalid link or expired");
+
+    
+   
+    user.password = req.body.password;
+    bcrypt.genSalt(salt,function(err,salt){
+      bcrypt.hash(user.password,salt,async function(err,hash){
+        user.password = hash
+           await user.save();
+      })});
+  
+
+    res.status(200).json("password reset sucessfully.");
+} catch (error) {
+    res.send("An error occured");
+    console.log(error);
+}
+    
+  
+    
+    
+})
 app.post("/:userId/:token", async (req, res) => {
   try {
       const schema = Joi.object({ password: Joi.string().required() });
